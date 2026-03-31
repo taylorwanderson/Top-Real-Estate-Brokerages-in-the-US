@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Brokerage Power Rankings — Inman</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,400&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --red:#CC1F1F; --red-dark:#A01717; --red-light:#F9EDED;
+  --black:#0f0f0f; --gray-900:#1c1c1c; --gray-700:#444;
+  --gray-500:#6b6b6b; --gray-300:#c8c8c8; --gray-200:#e6e6e6;
+  --gray-100:#f4f4f2; --white:#ffffff;
+  --compass:#0f0f0f; --exp:#c8720a; --kw:#b31111; --remax:#1a3a8f;
+  --anywhere:#2e6b47; --bhhs:#5a3472; --real:#c0392b; --hanna:#4a4a4a;
+  --elliman:#1a4a6b; --lpt:#0f6e56;
+  --merged:#8B1A1A;
+  --font-display:'Playfair Display',Georgia,serif;
+  --font-body:'DM Sans',system-ui,sans-serif;
+  --ease:.18s cubic-bezier(.4,0,.2,1);
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font-body);background:var(--gray-100);color:var(--black);min-height:100vh}
+
+/* ── HEADER ── */
+.site-header{background:var(--black);padding:0 32px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50}
+.logo{display:flex;align-items:center;gap:9px;text-decoration:none}
+.logo-mark{background:var(--red);color:#fff;font-family:var(--font-display);font-weight:700;font-size:16px;width:30px;height:30px;display:flex;align-items:center;justify-content:center}
+.logo-name{font-family:var(--font-display);font-size:17px;font-weight:600;color:#fff;letter-spacing:.3px}
+.logo-sep{color:#444;margin:0 2px}
+.logo-section{font-family:var(--font-body);font-size:11px;color:#888;letter-spacing:1.5px;text-transform:uppercase}
+.header-tag{background:var(--red);color:#fff;font-size:10px;font-weight:500;padding:3px 9px;letter-spacing:.8px;text-transform:uppercase}
+
+/* ── HERO ── */
+.hero{background:var(--black);padding:40px 32px 36px;border-bottom:3px solid var(--red)}
+.hero-eyebrow{font-size:11px;font-weight:500;letter-spacing:2px;text-transform:uppercase;color:var(--red);margin-bottom:10px}
+.hero h1{font-family:var(--font-display);font-size:clamp(26px,4vw,42px);font-weight:700;color:#fff;line-height:1.15;max-width:700px;margin-bottom:12px}
+.hero-sub{font-size:15px;color:#aaa;max-width:600px;line-height:1.7;margin-bottom:24px}
+.hero-meta{font-size:12px;color:#666;border-top:1px solid #222;padding-top:14px;display:flex;gap:20px;flex-wrap:wrap}
+.hero-meta span{display:flex;align-items:center;gap:5px}
+
+/* ── MERGER ALERT ── */
+.merger-alert{background:#1a0a0a;border-left:3px solid var(--red);margin:24px 32px;padding:16px 20px;display:flex;align-items:flex-start;gap:16px}
+.merger-alert-icon{color:var(--red);font-size:18px;flex-shrink:0;margin-top:1px}
+.merger-alert-body h3{font-size:14px;font-weight:500;color:#fff;margin-bottom:4px}
+.merger-alert-body p{font-size:13px;color:#999;line-height:1.6}
+.merger-alert-body strong{color:#ccc}
+
+/* ── MAIN CONTAINER ── */
+.container{max-width:1100px;margin:0 auto;padding:28px 32px}
+
+/* ── CONTROLS BAR ── */
+.controls-bar{background:var(--white);border:1px solid var(--gray-200);padding:16px 20px;margin-bottom:20px;display:flex;flex-wrap:wrap;gap:16px;align-items:center}
+.ctrl-group{display:flex;flex-direction:column;gap:5px}
+.ctrl-group-label{font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-500)}
+.seg-ctrl{display:flex;border:1px solid var(--gray-300);overflow:hidden}
+.seg-ctrl button{font-family:var(--font-body);font-size:12px;font-weight:500;padding:6px 14px;border:none;border-right:1px solid var(--gray-300);background:transparent;color:var(--gray-500);cursor:pointer;transition:all var(--ease);white-space:nowrap}
+.seg-ctrl button:last-child{border-right:none}
+.seg-ctrl button.active{background:var(--black);color:#fff}
+.pill-group{display:flex;gap:6px;flex-wrap:wrap}
+.pill{font-family:var(--font-body);font-size:12px;padding:5px 13px;border:1px solid var(--gray-300);background:transparent;color:var(--gray-500);cursor:pointer;transition:all var(--ease);white-space:nowrap}
+.pill.active{background:var(--black);color:#fff;border-color:var(--black)}
+
+/* ── MERGER TOGGLE ── */
+.merger-toggle-wrap{margin-left:auto;display:flex;flex-direction:column;gap:5px;align-items:flex-end}
+.merger-toggle-label{font-size:10px;font-weight:500;letter-spacing:1.5px;text-transform:uppercase;color:var(--gray-500)}
+.merger-switch{display:flex;align-items:center;gap:10px;cursor:pointer}
+.merger-switch input{display:none}
+.switch-track{width:42px;height:22px;background:var(--gray-300);position:relative;transition:background var(--ease);flex-shrink:0}
+.switch-thumb{position:absolute;top:3px;left:3px;width:16px;height:16px;background:#fff;transition:transform var(--ease)}
+.merger-switch input:checked + .switch-track{background:var(--merged)}
+.merger-switch input:checked + .switch-track .switch-thumb{transform:translateX(20px)}
+.merger-switch-text{font-size:12px;font-weight:500;color:var(--gray-700)}
+
+/* ── STATS GRID ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin-bottom:20px}
+.stat-card{background:var(--white);border:1px solid var(--gray-200);padding:14px 16px}
+.stat-label{font-size:10px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--gray-500);margin-bottom:6px}
+.stat-value{font-size:22px;font-weight:500;color:var(--black);line-height:1;margin-bottom:4px;font-family:var(--font-display)}
+.stat-sub{font-size:11px;color:var(--gray-500)}
+.stat-card.highlight{border-left:3px solid var(--red);padding-left:13px}
+
+/* ── CHART PANEL ── */
+.panel{background:var(--white);border:1px solid var(--gray-200);padding:20px 20px 16px;margin-bottom:20px}
+.panel-header{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:16px;padding-bottom:12px;border-bottom:1px solid var(--gray-200)}
+.panel-title{font-size:13px;font-weight:500;color:var(--black);letter-spacing:.2px}
+.panel-note{font-size:11px;color:var(--gray-500)}
+.chart-wrap{position:relative;width:100%}
+.legend-row{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:12px}
+.leg-item{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gray-700)}
+.leg-sq{width:9px;height:9px;flex-shrink:0}
+
+/* ── TABLE ── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px}
+thead{background:var(--gray-100)}
+th{padding:9px 12px;text-align:left;font-size:10px;font-weight:500;letter-spacing:1px;text-transform:uppercase;color:var(--gray-500);border-bottom:2px solid var(--gray-200);white-space:nowrap;cursor:pointer;user-select:none}
+th:hover{color:var(--black)}
+th.sorted{color:var(--black)}
+th.sorted::after{content:' ↓';font-size:9px}
+th.sorted.asc::after{content:' ↑'}
+td{padding:10px 12px;border-bottom:1px solid var(--gray-200);vertical-align:middle;color:var(--black)}
+tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:var(--gray-100)}
+.name-cell{display:flex;align-items:center;gap:10px}
+.color-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.brokerage-name{font-weight:500;font-size:13px}
+.merged-badge{font-size:9px;background:#8B1A1A;color:#fff;padding:2px 6px;letter-spacing:.5px;text-transform:uppercase;margin-left:6px;vertical-align:middle}
+.type-badge{font-size:10px;padding:2px 8px;font-weight:500;white-space:nowrap}
+.type-franchise{background:#EAF3DE;color:#27500A}
+.type-independent{background:#E6F1FB;color:#0C447C}
+.type-merged{background:#FCEBEB;color:#791F1F}
+.bar-wrap{display:flex;align-items:center;gap:8px;min-width:120px}
+.bar-track{flex:1;height:5px;background:var(--gray-200);overflow:hidden}
+.bar-fill{height:100%;transition:width .4s cubic-bezier(.4,0,.2,1)}
+.num{font-size:13px;white-space:nowrap}
+.growth-pos{color:#2e7d32;font-weight:500}
+.growth-neg{color:#c62828;font-weight:500}
+.growth-na{color:var(--gray-500)}
+.rank-num{font-size:12px;font-weight:500;color:var(--gray-500);width:20px;text-align:right}
+
+/* ── MERGER CALLOUT ── */
+.merger-callout{background:var(--merged);padding:20px 24px;margin-bottom:20px;display:none}
+.merger-callout.visible{display:block}
+.merger-callout h3{font-family:var(--font-display);font-size:18px;color:#fff;margin-bottom:8px}
+.merger-callout p{font-size:13px;color:rgba(255,255,255,.75);line-height:1.7;max-width:700px}
+.merger-stat-row{display:flex;gap:24px;margin-top:16px;flex-wrap:wrap}
+.merger-stat{text-align:left}
+.merger-stat .val{font-family:var(--font-display);font-size:24px;color:#fff;font-weight:600;line-height:1}
+.merger-stat .lbl{font-size:11px;color:rgba(255,255,255,.6);margin-top:3px;letter-spacing:.5px;text-transform:uppercase}
+
+/* ── FOOTER ── */
+.source-bar{background:var(--white);border-top:1px solid var(--gray-200);padding:16px 32px;font-size:11px;color:var(--gray-500);line-height:1.7}
+.source-bar a{color:var(--gray-500);text-decoration:underline}
+
+@media(max-width:700px){
+  .container,.hero,.merger-alert,.source-bar{padding-left:16px;padding-right:16px}
+  .stats-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .merger-toggle-wrap{margin-left:0}
+  .controls-bar{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <a class="logo" href="https://inman.com" target="_blank">
+    <div class="logo-mark">I</div>
+    <span class="logo-name">Inman</span>
+    <span class="logo-sep">/</span>
+    <span class="logo-section">Data</span>
+  </a>
+  <span class="header-tag">2025 Rankings</span>
+</header>
+
+<section class="hero">
+  <div class="hero-eyebrow">Brokerage Power Rankings</div>
+  <h1>Who dominates residential real estate in 2025</h1>
+  <p class="hero-sub">An interactive look at the nation's largest brokerages by sales volume, transaction sides, agent count, and average price — including the seismic Compass–Anywhere merger that closed January 2026.</p>
+  <div class="hero-meta">
+    <span>Data: RealTrends Verified 2025 (2024 production)</span>
+    <span>T3 Sixty 2025</span>
+    <span>Updated: March 2026</span>
+  </div>
+</section>
+
+<div class="merger-alert" style="background:#1a0a0a;border-left:3px solid var(--red);margin:24px 32px 0;padding:16px 20px">
+  <div style="color:var(--red);font-size:20px;flex-shrink:0">&#9670;</div>
+  <div>
+    <h3 style="font-size:13px;font-weight:500;color:#fff;margin-bottom:4px">Breaking: Compass acquires Anywhere Real Estate — January 9, 2026</h3>
+    <p style="font-size:13px;color:#999;line-height:1.6">The merger of the two largest US brokerages by volume creates a combined entity with <strong style="color:#ccc">~340,000 agents</strong> and <strong style="color:#ccc">$415B in 2024 deal volume</strong> — more than the next five largest brokerages combined. Toggle the merger view below to see how it reshapes the rankings.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- MERGER CALLOUT -->
+  <div class="merger-callout" id="mergerCallout">
+    <h3>Combined Compass + Anywhere: a new category of scale</h3>
+    <p>The January 2026 merger creates Compass International Holdings, absorbing Coldwell Banker, Century 21, Sotheby's International Realty, Corcoran, ERA, Better Homes &amp; Gardens, and @properties. The combined entity's 2024 production would exceed the next five brokerages combined.</p>
+    <div class="merger-stat-row">
+      <div class="merger-stat"><div class="val">$415B</div><div class="lbl">combined volume</div></div>
+      <div class="merger-stat"><div class="val">~340K</div><div class="lbl">agents</div></div>
+      <div class="merger-stat"><div class="val">575K+</div><div class="lbl">est. combined sides</div></div>
+      <div class="merger-stat"><div class="val">#1</div><div class="lbl">by every major metric</div></div>
+    </div>
+  </div>
+
+  <!-- CONTROLS -->
+  <div class="controls-bar">
+    <div class="ctrl-group">
+      <div class="ctrl-group-label">View</div>
+      <div class="seg-ctrl">
+        <button class="active" onclick="setView('chart')">Chart</button>
+        <button onclick="setView('table')">Table</button>
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-group-label">Metric</div>
+      <div class="seg-ctrl" id="metricSeg">
+        <button class="active" onclick="setMetric('volume')">Volume</button>
+        <button onclick="setMetric('sides')">Sides</button>
+        <button onclick="setMetric('avgPrice')">Avg price</button>
+        <button onclick="setMetric('agents')">Agents</button>
+      </div>
+    </div>
+
+    <div class="ctrl-group">
+      <div class="ctrl-group-label">Filter</div>
+      <div class="pill-group">
+        <button class="pill active" id="pill-all" onclick="setFilter('all')">All</button>
+        <button class="pill" id="pill-franchise" onclick="setFilter('franchise')">Franchise networks</button>
+        <button class="pill" id="pill-independent" onclick="setFilter('independent')">Independents</button>
+      </div>
+    </div>
+
+    <div class="merger-toggle-wrap">
+      <div class="merger-toggle-label">Compass + Anywhere merger</div>
+      <label class="merger-switch">
+        <input type="checkbox" id="mergerToggle" onchange="toggleMerger(this.checked)">
+        <div class="switch-track"><div class="switch-thumb"></div></div>
+        <span class="merger-switch-text" id="mergerLabel">Show pre-merger (2024 data)</span>
+      </label>
+    </div>
+  </div>
+
+  <!-- STATS ROW -->
+  <div class="stats-grid" id="statsRow"></div>
+
+  <!-- CHART PANEL -->
+  <div class="panel" id="chartPanel">
+    <div class="panel-header">
+      <span class="panel-title" id="chartTitle">Sales volume by brokerage</span>
+      <span class="panel-note" id="chartNote">2024 production · RealTrends Verified 2025</span>
+    </div>
+    <div class="legend-row" id="legendRow"></div>
+    <div class="chart-wrap" id="chartWrap"><canvas id="mainChart"></canvas></div>
+  </div>
+
+  <!-- TABLE PANEL -->
+  <div class="panel" id="tablePanel" style="display:none">
+    <div class="panel-header">
+      <span class="panel-title">Full comparison table</span>
+      <span class="panel-note">Click column headers to sort</span>
+    </div>
+    <div class="table-wrap">
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th style="width:36px">#</th>
+            <th onclick="sortBy('name')" id="th-name">Brokerage</th>
+            <th onclick="sortBy('type')" id="th-type">Type</th>
+            <th onclick="sortBy('volume')" id="th-volume" class="sorted">Volume</th>
+            <th onclick="sortBy('sides')" id="th-sides">Sides</th>
+            <th onclick="sortBy('avgPrice')" id="th-avgPrice">Avg price</th>
+            <th onclick="sortBy('agents')" id="th-agents">Agents</th>
+            <th onclick="sortBy('growth5yr')" id="th-growth5yr">5yr growth</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div><!-- /container -->
+
+<div class="source-bar">
+  <strong>Sources:</strong> <a href="https://www.realtrends.com/ranking/" target="_blank">RealTrends Verified 2025 Brokerage Rankings</a> (based on 2024 production data) · T3 Sixty 2025 · Agent counts approximate from public company filings and industry reports. Franchise network figures aggregate all affiliated firms. Average transaction price = volume ÷ (sides ÷ 2). Compass + Anywhere combined figures reflect 2024 production for both firms prior to integration. Post-merger agent count estimated at ~340,000 per company announcements. &nbsp;&nbsp; <a href="https://inman.com" target="_blank">Inman.com</a> for ongoing coverage.
+</div>
+
+<script>
+const PRE_MERGER = [
+  {id:'kw',       name:'Keller Williams',      type:'franchise',    volume:370,   sides:807323, agents:170000, growth5yr:29.9,   color:'#b31111'},
+  {id:'anywhere', name:'Anywhere Advisors',     type:'franchise',    volume:183.8, sides:246728, agents:195000, growth5yr:-12,    color:'#2e6b47'},
+  {id:'remax',    name:'RE/MAX',                type:'franchise',    volume:111.6, sides:383039, agents:145000, growth5yr:-8,     color:'#1a3a8f'},
+  {id:'bhhs',     name:'BHHS / HomeServices',   type:'franchise',    volume:136.6, sides:352364, agents:90000,  growth5yr:-3.2,   color:'#5a3472'},
+  {id:'compass',  name:'Compass',               type:'independent',  volume:231,   sides:228785, agents:35000,  growth5yr:188.9,  color:'#0f0f0f'},
+  {id:'exp',      name:'eXp Realty',             type:'independent',  volume:152.7, sides:350119, agents:88000,  growth5yr:274.4,  color:'#c8720a'},
+  {id:'real',     name:'The Real Brokerage',    type:'independent',  volume:42.4,  sides:90298,  agents:24000,  growth5yr:null,   color:'#c0392b'},
+  {id:'hanna',    name:'Hanna Holdings',         type:'independent',  volume:28,    sides:92154,  agents:9000,   growth5yr:null,   color:'#4a4a4a'},
+  {id:'elliman',  name:'Douglas Elliman',        type:'independent',  volume:24,    sides:21000,  agents:7000,   growth5yr:null,   color:'#1a4a6b'},
+  {id:'lpt',      name:'LPT Realty',             type:'independent',  volume:13.9,  sides:36369,  agents:12000,  growth5yr:null,   color:'#0f6e56'},
+];
+
+const POST_MERGER = [
+  {id:'kw',         name:'Keller Williams',          type:'franchise',    volume:370,   sides:807323, agents:170000, growth5yr:29.9,   color:'#b31111'},
+  {id:'compass_m',  name:'Compass + Anywhere',        type:'merged',       volume:415,   sides:575000, agents:340000, growth5yr:null,   color:'#8B1A1A', merged:true},
+  {id:'remax',      name:'RE/MAX',                    type:'franchise',    volume:111.6, sides:383039, agents:145000, growth5yr:-8,     color:'#1a3a8f'},
+  {id:'bhhs',       name:'BHHS / HomeServices',       type:'franchise',    volume:136.6, sides:352364, agents:90000,  growth5yr:-3.2,   color:'#5a3472'},
+  {id:'exp',        name:'eXp Realty',                 type:'independent',  volume:152.7, sides:350119, agents:88000,  growth5yr:274.4,  color:'#c8720a'},
+  {id:'real',       name:'The Real Brokerage',        type:'independent',  volume:42.4,  sides:90298,  agents:24000,  growth5yr:null,   color:'#c0392b'},
+  {id:'hanna',      name:'Hanna Holdings',             type:'independent',  volume:28,    sides:92154,  agents:9000,   growth5yr:null,   color:'#4a4a4a'},
+  {id:'elliman',    name:'Douglas Elliman',            type:'independent',  volume:24,    sides:21000,  agents:7000,   growth5yr:null,   color:'#1a4a6b'},
+  {id:'lpt',        name:'LPT Realty',                 type:'independent',  volume:13.9,  sides:36369,  agents:12000,  growth5yr:null,   color:'#0f6e56'},
+];
+
+PRE_MERGER.forEach(b => { b.avgPrice = Math.round((b.volume * 1e9) / (b.sides / 2)); });
+POST_MERGER.forEach(b => { b.avgPrice = Math.round((b.volume * 1e9) / (b.sides / 2)); });
+
+let currentMetric = 'volume';
+let currentFilter = 'all';
+let currentView = 'chart';
+let mergerMode = false;
+let sortKey = 'volume';
+let sortAsc = false;
+let chartInst = null;
+
+const METRICS = {
+  volume:   { label:'Sales volume',       unit:'$B',     chartLabel:'Sales volume ($B)',       fmt: v => '$'+v.toFixed(1)+'B',         tickFmt: v => '$'+v+'B',                   accessor: b => b.volume },
+  sides:    { label:'Transaction sides',  unit:'sides',  chartLabel:'Transaction sides',       fmt: v => (v/1000).toFixed(0)+'K',      tickFmt: v => v>=1000?(v/1000).toFixed(0)+'K':v, accessor: b => b.sides },
+  avgPrice: { label:'Avg transaction',    unit:'price',  chartLabel:'Avg transaction price',   fmt: v => '$'+(v/1000).toFixed(0)+'K',  tickFmt: v => '$'+(v/1000).toFixed(0)+'K', accessor: b => b.avgPrice },
+  agents:   { label:'Agent count',        unit:'approx', chartLabel:'Agent count (approximate)', fmt: v => (v/1000).toFixed(0)+'K',   tickFmt: v => v>=1000?(v/1000).toFixed(0)+'K':v, accessor: b => b.agents },
+};
+
+function dataset() {
+  return mergerMode ? POST_MERGER : PRE_MERGER;
+}
+
+function filtered() {
+  let d = dataset();
+  if (currentFilter === 'franchise')    d = d.filter(b => b.type === 'franchise');
+  if (currentFilter === 'independent')  d = d.filter(b => b.type === 'independent' || b.type === 'merged');
+  return [...d].sort((a,b) => METRICS[currentMetric].accessor(b) - METRICS[currentMetric].accessor(a));
+}
+
+function tableSorted() {
+  let d = filtered();
+  return [...d].sort((a, b) => {
+    let av = a[sortKey], bv = b[sortKey];
+    if (av === null) av = sortAsc ? Infinity : -Infinity;
+    if (bv === null) bv = sortAsc ? Infinity : -Infinity;
+    if (typeof av === 'string') return sortAsc ? av.localeCompare(bv) : bv.localeCompare(av);
+    return sortAsc ? av - bv : bv - av;
+  });
+}
+
+function setMetric(m) {
+  currentMetric = m;
+  document.querySelectorAll('#metricSeg button').forEach((btn, i) => {
+    btn.classList.toggle('active', ['volume','sides','avgPrice','agents'][i] === m);
+  });
+  render();
+}
+
+function setFilter(f) {
+  currentFilter = f;
+  ['all','franchise','independent'].forEach(x => {
+    document.getElementById('pill-'+x).classList.toggle('active', x === f);
+  });
+  render();
+}
+
+function setView(v) {
+  currentView = v;
+  document.querySelectorAll('.seg-ctrl button').forEach((btn, i) => {
+    if (btn.closest('.seg-ctrl') === document.querySelectorAll('.seg-ctrl')[0])
+      btn.classList.toggle('active', ['chart','table'][i] === v);
+  });
+  document.getElementById('chartPanel').style.display  = v === 'chart' ? '' : 'none';
+  document.getElementById('tablePanel').style.display  = v === 'table' ? '' : 'none';
+  render();
+}
+
+function toggleMerger(on) {
+  mergerMode = on;
+  document.getElementById('mergerLabel').textContent = on ? 'Showing post-merger (Jan 2026)' : 'Show pre-merger (2024 data)';
+  document.getElementById('mergerCallout').classList.toggle('visible', on);
+  render();
+}
+
+function sortBy(key) {
+  if (sortKey === key) sortAsc = !sortAsc;
+  else { sortKey = key; sortAsc = false; }
+  document.querySelectorAll('th[id^="th-"]').forEach(th => {
+    th.classList.remove('sorted','asc');
+  });
+  const th = document.getElementById('th-'+key);
+  if (th) { th.classList.add('sorted'); if (sortAsc) th.classList.add('asc'); }
+  renderTable(tableSorted());
+}
+
+function render() {
+  const data = filtered();
+  renderStats(data);
+  if (currentView === 'chart') renderChart(data);
+  else renderTable(tableSorted());
+}
+
+function renderStats(data) {
+  const totalVol   = data.reduce((s,b) => s + b.volume, 0);
+  const totalSides = data.reduce((s,b) => s + b.sides, 0);
+  const totalAgents= data.reduce((s,b) => s + b.agents, 0);
+  const topAvg     = [...data].sort((a,b) => b.avgPrice - a.avgPrice)[0];
+  const topVol     = [...data].sort((a,b) => b.volume - a.volume)[0];
+
+  document.getElementById('statsRow').innerHTML = `
+    <div class="stat-card highlight">
+      <div class="stat-label">Total volume shown</div>
+      <div class="stat-value">$${Math.round(totalVol)}B</div>
+      <div class="stat-sub">${data.length} firms · 2024 production</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total transaction sides</div>
+      <div class="stat-value">${(totalSides/1000).toFixed(0)}K</div>
+      <div class="stat-sub">combined transaction sides</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Total agents</div>
+      <div class="stat-value">${(totalAgents/1000).toFixed(0)}K</div>
+      <div class="stat-sub">approximate combined agent count</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Highest avg price</div>
+      <div class="stat-value">$${(topAvg.avgPrice/1000).toFixed(0)}K</div>
+      <div class="stat-sub">${topAvg.name}</div>
+    </div>
+  `;
+}
+
+function renderChart(data) {
+  const mc   = METRICS[currentMetric];
+  const labels  = data.map(b => b.name);
+  const values  = data.map(b => mc.accessor(b));
+  const colors  = data.map(b => b.color);
+  const alphas  = data.map(b => b.merged ? b.color : b.color+'cc');
+
+  const h = Math.max(300, data.length * 46 + 70);
+  const wrap = document.getElementById('chartWrap');
+  wrap.style.height = h + 'px';
+
+  document.getElementById('chartTitle').textContent = mc.chartLabel + ' by brokerage';
+  document.getElementById('chartNote').textContent  = '2024 production · RealTrends Verified 2025' + (mergerMode ? ' · Merger view: Jan 2026' : '');
+
+  document.getElementById('legendRow').innerHTML = data.map(b =>
+    `<span class="leg-item"><span class="leg-sq" style="background:${b.color}"></span>${b.name}${b.merged ? '<span style="font-size:9px;background:#8B1A1A;color:#fff;padding:1px 5px;margin-left:5px;vertical-align:middle">MERGED</span>' : ''}</span>`
+  ).join('');
+
+  const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+  const gridC  = isDark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.05)';
+  const textC  = isDark ? '#999' : '#888';
+
+  if (chartInst) { chartInst.destroy(); chartInst = null; }
+
+  chartInst = new Chart(document.getElementById('mainChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets:[{
+        data: values,
+        backgroundColor: alphas,
+        borderWidth: 0,
+        borderRadius: 2,
+        barThickness: 26,
+      }]
+    },
+    options:{
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins:{
+        legend:{ display: false },
+        tooltip:{
+          callbacks:{
+            label: ctx => '  ' + mc.fmt(ctx.raw)
+          }
+        }
+      },
+      scales:{
+        x:{
+          grid:{ color: gridC },
+          ticks:{ color: textC, font:{ size:11, family:'DM Sans,system-ui,sans-serif' }, callback: v => mc.tickFmt(v) },
+          border:{ display: false }
+        },
+        y:{
+          grid:{ display: false },
+          ticks:{ color: textC, font:{ size:12, family:'DM Sans,system-ui,sans-serif' }, autoSkip: false },
+          border:{ display: false }
+        }
+      },
+      layout:{ padding:{ right: 24, top: 4 } }
+    }
+  });
+}
+
+function renderTable(data) {
+  const maxVol    = Math.max(...data.map(b => b.volume));
+  const maxSides  = Math.max(...data.map(b => b.sides));
+  const maxAgents = Math.max(...data.map(b => b.agents));
+
+  document.getElementById('tableBody').innerHTML = data.map((b, i) => {
+    const vPct = (b.volume  / maxVol   * 100).toFixed(0);
+    const sPct = (b.sides   / maxSides * 100).toFixed(0);
+    const aPct = (b.agents  / maxAgents* 100).toFixed(0);
+    const g = b.growth5yr != null
+      ? `<span class="${b.growth5yr >= 0 ? 'growth-pos' : 'growth-neg'}">${b.growth5yr >= 0 ? '+' : ''}${b.growth5yr.toFixed(1)}%</span>`
+      : `<span class="growth-na">—</span>`;
+
+    const typeLabel = b.type === 'merged' ? 'merged' : b.type;
+    const typeCls   = b.type === 'merged' ? 'type-merged' : b.type === 'franchise' ? 'type-franchise' : 'type-independent';
+
+    return `<tr>
+      <td class="rank-num">${i+1}</td>
+      <td>
+        <div class="name-cell">
+          <span class="color-dot" style="background:${b.color}"></span>
+          <span class="brokerage-name">${b.name}</span>
+          ${b.merged ? '<span class="merged-badge">Jan 2026</span>' : ''}
+        </div>
+      </td>
+      <td><span class="type-badge ${typeCls}">${typeLabel}</span></td>
+      <td>
+        <div class="bar-wrap">
+          <div class="bar-track"><div class="bar-fill" style="width:${vPct}%;background:${b.color}"></div></div>
+          <span class="num">$${b.volume.toFixed(1)}B</span>
+        </div>
+      </td>
+      <td>
+        <div class="bar-wrap">
+          <div class="bar-track"><div class="bar-fill" style="width:${sPct}%;background:${b.color}88"></div></div>
+          <span class="num">${(b.sides/1000).toFixed(0)}K</span>
+        </div>
+      </td>
+      <td class="num">$${(b.avgPrice/1000).toFixed(0)}K</td>
+      <td>
+        <div class="bar-wrap">
+          <div class="bar-track"><div class="bar-fill" style="width:${aPct}%;background:${b.color}66"></div></div>
+          <span class="num">${(b.agents/1000).toFixed(0)}K</span>
+        </div>
+      </td>
+      <td>${g}</td>
+    </tr>`;
+  }).join('');
+}
+
+render();
+</script>
+</body>
+</html>
